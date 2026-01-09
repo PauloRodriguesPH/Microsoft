@@ -15,12 +15,10 @@
 # Ideal para validação antes de rodar de verdade, ou validar uma cópia realizada.
 azcopy sync "D:\CAMINHO\ORIGEM\*" "https://<storage-account>.blob.core.windows.net/<container>/<path>?<SAS_TOKEN>" --recursive --dry-run
 
-
 # ============================================================
 # CÓPIA SIMPLES PARA AZURE BLOB (ARCHIVE TIER)
 # Copia todos os arquivos da origem para o destino, gravando diretamente no tier Archive.
 azcopy copy "D:\CAMINHO\ORIGEM\*" "https://<storage-account>.blob.core.windows.net/<container>/<path>?<SAS_TOKEN>" --recursive=true --block-blob-tier=Archive
-
 
 # ============================================================
 # LISTAR TODOS OS JOBS DO AZCOPY
