@@ -4,7 +4,7 @@
 
 <#
 # Autor: Paulo Henrique da Silva Motta Rodrigues
-# Testado em: Windows Server 2012R2 com AzCopy
+# Testado em: Windows Server 2016 com AzCopy
 # Data do teste: 06/01/2026
 # Uso: este arquivo é um catálogo; copie e rode os comandos conforme necessidade.
 #>
