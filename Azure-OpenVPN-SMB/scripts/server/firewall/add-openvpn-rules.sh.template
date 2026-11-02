@@ -1,0 +1,29 @@
+#!/bin/sh
+# Regras do firewall da VM OpenVPN (substitui o add-openvpn-rules.sh do instalador).
+# Placeholders: __STORAGE_IP__ e __VPN_PORT__ (trocados por 03-aplicar-firewall.sh).
+# Interface publica assumida: eth0 (padrao do Ubuntu na Azure; confirme com 'ip addr').
+set -eu
+
+if iptables -nL OPENVPN_INSTALL_FORWARD >/dev/null 2>&1; then
+  echo 'iptables chain OPENVPN_INSTALL_FORWARD already exists' >&2
+  exit 1
+fi
+cleanup() { /etc/iptables/rm-openvpn-rules.sh >/dev/null 2>&1 || true; }
+trap cleanup EXIT HUP INT TERM
+
+# Entrada: OpenVPN pela interface publica
+iptables -I INPUT 1 -i eth0 -p tcp --dport __VPN_PORT__ -j ACCEPT
+iptables -N OPENVPN_INSTALL_FORWARD
+# Clientes da VPN NAO falam com a propria VM
+iptables -I INPUT 1 -i tun+ -s 10.8.0.0/24 -j DROP
+# Respostas de volta para os clientes
+iptables -I FORWARD 1 -o tun+ -d 10.8.0.0/24 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+# Tudo que vem da VPN passa pela chain de filtro
+iptables -I FORWARD 1 -i tun+ -s 10.8.0.0/24 -j OPENVPN_INSTALL_FORWARD
+# A UNICA coisa permitida: TCP 445 para o IP do storage
+iptables -A OPENVPN_INSTALL_FORWARD -d __STORAGE_IP__ -p tcp --dport 445 -j ACCEPT
+iptables -A OPENVPN_INSTALL_FORWARD -j REJECT
+# NAT de saida
+iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -o eth0 -j MASQUERADE
+
+trap - EXIT HUP INT TERM

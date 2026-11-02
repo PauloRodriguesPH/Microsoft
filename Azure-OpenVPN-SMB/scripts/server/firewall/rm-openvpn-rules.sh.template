@@ -1,0 +1,13 @@
+#!/bin/sh
+# Remove as regras criadas por add-openvpn-rules.sh (substitui o rm-openvpn-rules.sh do instalador).
+# Placeholders: __VPN_PORT__ (trocado por 03-aplicar-firewall.sh).
+set -u
+remove_rule() { "$@" 2>/dev/null || true; }
+
+remove_rule iptables -t nat -D POSTROUTING -s 10.8.0.0/24 -o eth0 -j MASQUERADE
+remove_rule iptables -D INPUT -i eth0 -p tcp --dport __VPN_PORT__ -j ACCEPT
+remove_rule iptables -D FORWARD -i tun+ -s 10.8.0.0/24 -j OPENVPN_INSTALL_FORWARD
+remove_rule iptables -D FORWARD -o tun+ -d 10.8.0.0/24 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+remove_rule iptables -D INPUT -i tun+ -s 10.8.0.0/24 -j DROP
+remove_rule iptables -F OPENVPN_INSTALL_FORWARD
+remove_rule iptables -X OPENVPN_INSTALL_FORWARD
